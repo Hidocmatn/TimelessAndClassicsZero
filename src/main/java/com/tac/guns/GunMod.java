@@ -2,6 +2,7 @@ package com.tac.guns;
 
 import com.tac.guns.init.*;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
@@ -22,5 +23,8 @@ public class GunMod {
         ModRecipe.RECIPE_SERIALIZERS.register(bus);
         ModContainer.CONTAINER_TYPE.register(bus);
         ModSounds.SOUNDS.register(bus);
+    }
+    public static boolean isModLoaded(String modId) {
+        return ModList.get().isLoaded(modId);
     }
 }

@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.tac.guns.GunMod;
+import com.tac.guns.compat.kubejs.event.TimelessRecipeEventJS;
 import com.tac.guns.crafting.GunSmithTableIngredient;
 import com.tac.guns.crafting.GunSmithTableResult;
 import com.tac.guns.resource.index.CommonAmmoIndex;
@@ -100,6 +101,10 @@ public class CommonGunPackLoader {
         File[] files = FOLDER.toFile().listFiles((dir, name) -> true);
         if (files != null) {
             readRecipes(files);
+        }
+        //Recipes might get modified if kubejs is loaded.
+        if (GunMod.isModLoaded("kubejs")) {
+            TimelessRecipeEventJS.post(CommonAssetManager.INSTANCE);
         }
     }
 
