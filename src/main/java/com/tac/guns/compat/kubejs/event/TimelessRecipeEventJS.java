@@ -23,7 +23,9 @@ public class TimelessRecipeEventJS extends EventJS {
 
     public TimelessRecipeEventJS(Map<ResourceLocation, GunSmithTableRecipe> map) {
         recipeMap = map;
+        recipesToAdd = new ArrayList<>();
         recipesToRemove = new HashSet<>();
+        recipesToModify = new ArrayList<>();
     }
 
     private List<RecipeJS> getOriginalRecipes() {
@@ -48,10 +50,6 @@ public class TimelessRecipeEventJS extends EventJS {
         return recipe;
     }
 
-    public boolean noRecipeToRemove() {
-        return recipesToRemove.isEmpty();
-    }
-
     public void remove(RecipeFilter filter) {
         originalRecipes.stream().filter(filter).forEach(recipeJS -> {
             recipesToRemove.add(recipeJS);
@@ -71,7 +69,7 @@ public class TimelessRecipeEventJS extends EventJS {
 
     public static void post(CommonAssetManager manager) {
         TimelessRecipeEventJS event = new TimelessRecipeEventJS(manager.getAllRecipes());
-        event.post(ScriptType.SERVER, "recipes.tac");
+        event.post(ScriptType.STARTUP, "recipes.tac");
         event.recipesToAdd.forEach(recipeJS -> {
             try {
                 recipeJS.originalRecipe = recipeJS.createRecipe();
@@ -79,9 +77,11 @@ public class TimelessRecipeEventJS extends EventJS {
                 throw new RuntimeException(e);
             }
         });
-        event.getOriginalRecipes().addAll(event.recipesToAdd);
+        if (!event.recipesToAdd.isEmpty()) {
+            event.getOriginalRecipes().addAll(event.recipesToAdd);
+        }
         if (event.originalRecipes != null) {
-            if (!event.noRecipeToRemove()) {
+            if (!event.recipesToRemove.isEmpty()) {
                 event.originalRecipes.removeAll(event.recipesToRemove);
                 manager.clearRecipes();
                 for (RecipeJS recipeJS : event.originalRecipes) {
@@ -89,8 +89,10 @@ public class TimelessRecipeEventJS extends EventJS {
                 }
             }
             else {
-                for (RecipeJS recipeJS : event.recipesToModify) {
-                    manager.putRecipe(recipeJS.id, (GunSmithTableRecipe) recipeJS.originalRecipe);
+                if (!event.recipesToModify.isEmpty()) {
+                    for (RecipeJS recipeJS : event.recipesToModify) {
+                        manager.putRecipe(recipeJS.id, (GunSmithTableRecipe) recipeJS.originalRecipe);
+                    }
                 }
             }
         }
